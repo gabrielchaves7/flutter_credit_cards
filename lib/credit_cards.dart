@@ -41,6 +41,10 @@ class CardSlider extends StatefulWidget {
 class _CardSliderState extends State<CardSlider> {
   double positionY_line1;
   double positionY_line2;
+  double _middleAreaHeight;
+  double _outsideCardInterval;
+  double scrollOffsetY;
+
   List<CardInfo> _cardInfoList;
 
   @override
@@ -48,6 +52,9 @@ class _CardSliderState extends State<CardSlider> {
     super.initState();
     positionY_line1 = widget.height * 0.1;
     positionY_line2 = positionY_line1 + 200;
+    _middleAreaHeight = positionY_line2 - positionY_line1;
+    _outsideCardInterval = 30.0;
+    scrollOffsetY = 0;
 
     _cardInfoList = [
       CardInfo(
@@ -159,10 +166,57 @@ class _CardSliderState extends State<CardSlider> {
     return widgetList;
   }
 
+  _updateCardsPosition(double offsetY){
+
+    void updatePosition(CardInfo cardInfo, double firstCardAtAreaIdx, int cardIndex){
+      double currentCardAtAreaIdx = firstCardAtAreaIdx + cardIndex;
+      if(currentCardAtAreaIdx < 0){
+        cardInfo.positionY = positionY_line1 + currentCardAtAreaIdx*_outsideCardInterval;
+
+        cardInfo.rotate = -90.0/_outsideCardInterval*(positionY_line1-cardInfo.positionY);
+        print(cardInfo.rotate);
+         if(cardInfo.rotate > 0.0) cardInfo.rotate=0.0;
+        if(cardInfo.rotate < -90.0) cardInfo.rotate= -90.0;
+
+      } else if(currentCardAtAreaIdx>=0 && currentCardAtAreaIdx < 1){
+        cardInfo.positionY = positionY_line1 + currentCardAtAreaIdx*_middleAreaHeight;
+
+        cardInfo.rotate = -60.0/(positionY_line2-positionY_line1)*(cardInfo.positionY-positionY_line1);
+        if(cardInfo.rotate > 0.0) cardInfo.rotate=0.0;
+        if(cardInfo.rotate < -60.0) cardInfo.rotate= -60.0;
+
+      } else if(currentCardAtAreaIdx>= 1){
+        cardInfo.positionY = positionY_line2 + (currentCardAtAreaIdx-1)*_outsideCardInterval;
+
+        cardInfo.rotate = -60.0;
+      }
+    }
+    
+    scrollOffsetY += offsetY;
+
+    double firstCardAtAreaIdx = scrollOffsetY / _middleAreaHeight;
+
+    CardInfo cardInfo = _cardInfoList.last;
+    updatePosition(cardInfo, firstCardAtAreaIdx, 0);
+/*    for (var i = 0; i < _cardInfoList.length; i++) {
+      CardInfo cardInfo = _cardInfoList[i];
+      updatePosition(cardInfo, firstCardAtAreaIdx, 0);
+    }*/
+
+    setState(() {
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    return GestureDetector(
+      onVerticalDragUpdate: (DragUpdateDetails details){
+        _updateCardsPosition(details.delta.dy);
+      },
+      onVerticalDragEnd: (DragEndDetails details){
+
+      },
+      child: Container(
         color: Color.fromARGB(255, 230, 228, 232),
         child: Stack(
           alignment: AlignmentDirectional.topCenter,
