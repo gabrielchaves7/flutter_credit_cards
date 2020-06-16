@@ -178,6 +178,16 @@ class _CardSliderState extends State<CardSlider> {
          if(cardInfo.rotate > 0.0) cardInfo.rotate=0.0;
         if(cardInfo.rotate < -90.0) cardInfo.rotate= -90.0;
 
+        cardInfo.scale = 1.0 - 0.2/_outsideCardInterval*(positionY_line1-cardInfo.positionY);
+        if(cardInfo.scale < 0.8)
+          cardInfo.scale = 0.8;
+        if(cardInfo.scale > 1.0)
+          cardInfo.scale = 1.0;
+
+        cardInfo.opacity = 1.0 - 0.7 / _outsideCardInterval*(positionY_line1-cardInfo.positionY);
+        if(cardInfo.opacity < 0.0) cardInfo.opacity = 0.0;
+        if(cardInfo.opacity > 1.0) cardInfo.opacity = 1.0;
+
       } else if(currentCardAtAreaIdx>=0 && currentCardAtAreaIdx < 1){
         cardInfo.positionY = positionY_line1 + currentCardAtAreaIdx*_middleAreaHeight;
 
@@ -185,10 +195,22 @@ class _CardSliderState extends State<CardSlider> {
         if(cardInfo.rotate > 0.0) cardInfo.rotate=0.0;
         if(cardInfo.rotate < -60.0) cardInfo.rotate= -60.0;
 
+        cardInfo.scale = 1.0 - 0.1/(positionY_line2-positionY_line1)*(cardInfo.positionY-positionY_line1);
+        if(cardInfo.scale < 0.9)
+          cardInfo.scale = 0.9;
+        if(cardInfo.scale > 1.0)
+          cardInfo.scale = 1.0;
+
+        cardInfo.opacity = 1.0 - 0.3 / (positionY_line2-positionY_line1)*(cardInfo.positionY-positionY_line1);
+        if(cardInfo.opacity < 0.0) cardInfo.opacity = 0.0;
+        if(cardInfo.opacity > 1.0) cardInfo.opacity = 1.0;
+
       } else if(currentCardAtAreaIdx>= 1){
         cardInfo.positionY = positionY_line2 + (currentCardAtAreaIdx-1)*_outsideCardInterval;
 
         cardInfo.rotate = -60.0;
+        cardInfo.scale = 0.9;
+        cardInfo.opacity = 0.7;
       }
     }
     
@@ -196,12 +218,10 @@ class _CardSliderState extends State<CardSlider> {
 
     double firstCardAtAreaIdx = scrollOffsetY / _middleAreaHeight;
 
-    CardInfo cardInfo = _cardInfoList.last;
-    updatePosition(cardInfo, firstCardAtAreaIdx, 0);
-/*    for (var i = 0; i < _cardInfoList.length; i++) {
-      CardInfo cardInfo = _cardInfoList[i];
-      updatePosition(cardInfo, firstCardAtAreaIdx, 0);
-    }*/
+    for (var i = 0; i < _cardInfoList.length; i++) {
+      CardInfo cardInfo = _cardInfoList[_cardInfoList.length - 1 - i];
+      updatePosition(cardInfo, firstCardAtAreaIdx, i);
+    }
 
     setState(() {
     });
@@ -214,7 +234,8 @@ class _CardSliderState extends State<CardSlider> {
         _updateCardsPosition(details.delta.dy);
       },
       onVerticalDragEnd: (DragEndDetails details){
-
+        scrollOffsetY = (scrollOffsetY/_middleAreaHeight).round()*_middleAreaHeight;
+        _updateCardsPosition(0);
       },
       child: Container(
         color: Color.fromARGB(255, 230, 228, 232),
@@ -235,7 +256,7 @@ class _CardSliderState extends State<CardSlider> {
                 ),
               ),
             ),
-            Positioned(
+/*            Positioned(
               top: positionY_line1,
               child: Container(
                 color: Colors.red,
@@ -250,7 +271,7 @@ class _CardSliderState extends State<CardSlider> {
                 height: 1,
                 width: MediaQuery.of(context).size.width,
               ),
-            ),
+            ),*/
             ..._buildCards(),
           ],
         ),
